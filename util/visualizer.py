@@ -5,6 +5,8 @@ import time
 from . import util
 from . import html
 from scipy.misc import imresize
+from util.tensorboard_logger import Logger
+import torch
 
 
 # save image to the disk
@@ -52,6 +54,8 @@ class Visualizer():
             print('create web directory %s...' % self.web_dir)
             util.mkdirs([self.web_dir, self.img_dir])
         self.log_name = os.path.join(opt.checkpoints_dir, opt.name, 'loss_log.txt')
+        self.tb_logger = Logger(os.path.join(opt.log_dir, opt.name))
+
         with open(self.log_name, "a") as log_file:
             now = time.strftime("%c")
             log_file.write('================ Training Loss (%s) ================\n' % now)
@@ -161,3 +165,19 @@ class Visualizer():
         print(message)
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)
+
+    def tensorboard_log_losses(self, losses, step):
+        for tag, value in losses.items():
+            self.tb_logger.scalar_summary(tag, value, step)
+
+    def tensorboard_log_images(self, fixed_real_imgs, fixed_fake_imgs, step):
+        fixed_realA_list = torch.unbind(fixed_real_imgs['A'], dim=0)
+        fixed_realB_list = torch.unbind(fixed_real_imgs['B'], dim=0)
+        fixed_fake_list = torch.unbind(fixed_fake_imgs, dim=0)
+
+        tb_imgs_list = []
+        for i in range(len(fixed_fake_list)):
+            tb_imgs_list.append(
+                torch.cat([fixed_realA_list[i], fixed_realB_list[i],
+                           fixed_fake_list[i].data.cpu()], dim=2))
+        self.tb_logger.image_summary(fixed_real_imgs['A_paths'], tb_imgs_list, step)
