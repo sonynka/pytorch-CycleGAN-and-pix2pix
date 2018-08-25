@@ -1,6 +1,6 @@
 import os
 from options.test_options import TestOptions
-from data import CreateDataLoader
+from data import get_data_loaders
 from models import create_model
 from util.visualizer import save_images
 from util import html
@@ -13,8 +13,9 @@ if __name__ == '__main__':
     opt.serial_batches = True  # no shuffle
     opt.no_flip = True  # no flip
     opt.display_id = -1  # no visdom display
-    data_loader = CreateDataLoader(opt)
-    dataset = data_loader.load_data()
+    data_loaders = get_data_loaders(opt)
+    dataset = data_loaders['test']
+    dataset_size = len(dataset)
     model = create_model(opt)
     model.setup(opt)
     # create website

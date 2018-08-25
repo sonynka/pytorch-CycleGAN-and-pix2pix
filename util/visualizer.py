@@ -170,14 +170,11 @@ class Visualizer():
         for tag, value in losses.items():
             self.tb_logger.scalar_summary(tag, value, step)
 
-    def tensorboard_log_images(self, fixed_real_imgs, fixed_fake_imgs, step):
-        fixed_realA_list = torch.unbind(fixed_real_imgs['A'], dim=0)
-        fixed_realB_list = torch.unbind(fixed_real_imgs['B'], dim=0)
-        fixed_fake_list = torch.unbind(fixed_fake_imgs, dim=0)
+    def tensorboard_log_images(self, fixed_fake_imgs, labels, step):
 
-        tb_imgs_list = []
-        for i in range(len(fixed_fake_list)):
-            tb_imgs_list.append(
-                torch.cat([fixed_realA_list[i], fixed_realB_list[i],
-                           fixed_fake_list[i].data.cpu()], dim=2))
-        self.tb_logger.image_summary(fixed_real_imgs['A_paths'], tb_imgs_list, step)
+        fake_imgs = torch.stack(list(fixed_fake_imgs.values()))
+        tb_imgs_list = torch.unbind(fake_imgs, dim=0)
+        tb_imgs_list = [torch.cat(torch.unbind(l, dim=0), dim=2)
+                        for l in tb_imgs_list]
+
+        self.tb_logger.image_summary(labels, tb_imgs_list, step)

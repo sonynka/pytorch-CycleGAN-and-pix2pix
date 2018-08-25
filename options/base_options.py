@@ -15,8 +15,12 @@ class BaseOptions():
                                  help='chooses which model to use. cycle_gan, pix2pix, test')
 
         parser.add_argument('--flist_path', required=True, help='path where lists for train/test/val images are saved')
-        parser.add_argument('--datarootA', required=True, help='folder containg images A')
-        parser.add_argument('--datarootB', required=True, help='folder containg images B')
+        parser.add_argument('--datarootA', help='folder containg images A')
+        parser.add_argument('--datarootB', help='folder containg images B')
+        parser.add_argument('--dataroot', help='folder containg all images')
+        parser.add_argument('--attrA', help='which attribute to train on cycleGAN')
+        parser.add_argument('--attrB', help='which attribute to train on cycleGAN')
+        parser.add_argument('--categories', help='specify clothing categories to train on')
         parser.add_argument('--which_direction', type=str, default='AtoB', help='AtoB or BtoA')
 
         parser.add_argument('--name', type=str, default='experiment_name',

@@ -44,9 +44,12 @@ if __name__ == '__main__':
                 if opt.display_id > 0:
                     visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, opt, losses)
                 visualizer.tensorboard_log_losses(losses, total_steps)
-                AtoB = opt.which_direction == 'AtoB'
-                fixed_fake_imgs = model.netG(fixed_real_imgs['A' if AtoB else 'B'])
-                visualizer.tensorboard_log_images(fixed_real_imgs, fixed_fake_imgs, total_steps)
+
+                model.set_input(fixed_real_imgs)
+                model.forward()
+                visualizer.tensorboard_log_images(model.get_current_visuals(),
+                                                  model.visual_names,
+                                                  total_steps)
 
             if total_steps % opt.save_latest_freq == 0:
                 print('saving the latest model (epoch %d, total_steps %d)' %
