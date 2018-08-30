@@ -12,6 +12,8 @@ def tensor2im(input_image, imtype=np.uint8):
         image_tensor = input_image.data
     else:
         return input_image
+    if image_tensor.shape[0] != 0:
+        image_tensor = torch.cat(torch.unbind(image_tensor), dim=2).unsqueeze(0)
     image_numpy = image_tensor[0].cpu().float().numpy()
     if image_numpy.shape[0] == 1:
         image_numpy = np.tile(image_numpy, (3, 1, 1))

@@ -38,7 +38,7 @@ def get_data_loaders(opt):
     data_loaders = {
         mode: DataLoader(image_datasets[mode],
                          batch_size=8 if mode =='val' else opt.batch_size,
-                         shuffle=True if mode == 'train' else False,
+                         shuffle=False if mode == 'test' else True,
                          num_workers=4)
         for mode in modes
     }
