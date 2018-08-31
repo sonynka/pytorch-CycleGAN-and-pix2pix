@@ -126,10 +126,10 @@ class GANLoss(nn.Module):
     def get_target_tensor(self, input, target_is_real):
         if target_is_real:
             target_real_label = np.random.uniform(0.7, 1.2)
-            target_tensor = torch.tensor(target_real_label)
+            target_tensor = torch.tensor(target_real_label).cuda()
         else:
             target_fake_label = np.random.uniform(0.0, 0.3)
-            target_tensor = torch.tensor(target_fake_label)
+            target_tensor = torch.tensor(target_fake_label).cuda()
         return target_tensor.expand_as(input)
 
     def __call__(self, input, target_is_real):
