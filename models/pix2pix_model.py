@@ -2,6 +2,7 @@ import torch
 from util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks
+import numpy as np
 
 
 class Pix2PixModel(BaseModel):
@@ -27,7 +28,7 @@ class Pix2PixModel(BaseModel):
         BaseModel.initialize(self, opt)
         self.isTrain = opt.isTrain
         # specify the training losses you want to print out. The program will call base_model.get_current_losses
-        self.loss_names = ['G_GAN', 'G_L1', 'D_real', 'D_fake']
+        self.loss_names = ['G_GAN', 'G_L1', 'G', 'D_real', 'D_fake', 'D']
         # specify the images you want to save/display. The program will call base_model.get_current_visuals
         self.visual_names = ['real_A', 'fake_B', 'real_B']
         # specify the models you want to save to the disk. The program will call base_model.save_networks and base_model.load_networks
@@ -70,16 +71,20 @@ class Pix2PixModel(BaseModel):
         self.fake_B = self.netG(self.real_A)
 
     def backward_D(self):
+        # Sometimes flip labels to confuse the discriminator
+        flip_labels = np.random.rand()
+        flip_labels = True if flip_labels < 0.1 else False
         # Fake
         # stop backprop to the generator by detaching fake_B
         fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A, self.fake_B), 1))
         pred_fake = self.netD(fake_AB.detach())
-        self.loss_D_fake = self.criterionGAN(pred_fake, False)
+
+        self.loss_D_fake = self.criterionGAN(pred_fake, flip_labels)
 
         # Real
         real_AB = torch.cat((self.real_A, self.real_B), 1)
         pred_real = self.netD(real_AB)
-        self.loss_D_real = self.criterionGAN(pred_real, True)
+        self.loss_D_real = self.criterionGAN(pred_real, not flip_labels)
 
         # Combined loss
         self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5
