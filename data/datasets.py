@@ -2,6 +2,7 @@ import os
 from PIL import Image
 import random
 import pandas as pd
+import torch
 
 def default_loader(path):
     return Image.open(path).convert('RGB')
@@ -114,3 +115,58 @@ class UnalignedDataset():
 
     def name(self):
         return 'UnalignedDataset'
+
+
+class LabeledDataset():
+
+    def __init__(self, root, flist_path, labels_path, attributes,
+                 categories=None, transform=None, flist_loader=default_flist_reader,
+                 loader=default_loader):
+
+
+        self.root = root
+        self.loader = loader
+        self.labels_path = labels_path
+        self.transform = transform
+
+        imlist = flist_loader(flist_path)
+        if categories is not None:
+            catlist = categories.split(',')
+            imlist = [im for im in imlist if any(cat in im for cat in catlist)]
+
+        self.imgs, self.labels = self.process_labels(imlist, attributes)
+        self.size = len(self.imgs)
+
+    def process_labels(self, imlist, attributes):
+        """ Load the labels from CSV file, process, and return a dataframe """
+
+        labels_df = pd.read_csv(self.labels_path)
+        labels_df = labels_df.loc[labels_df.img_path.isin(imlist)]
+
+        self.selected_attrs = [col for col in labels_df.columns
+                               if any(attr in col for attr in attributes.split(','))]
+
+        labels_df = labels_df[['img_path'] + self.selected_attrs]
+        labels_df = labels_df.loc[(labels_df[self.selected_attrs] != 0).any(axis=1)]
+
+        imgs = labels_df['img_path'].tolist()
+        labels = labels_df.iloc[:, 1:].as_matrix().tolist()
+
+        return imgs, labels
+
+
+    def __getitem__(self, index):
+        img_path = os.path.join(self.root, self.imgs[index])
+        img = self.loader(img_path)
+        label = torch.FloatTensor(self.labels[index])
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        return {'img_path': img_path, 'img': img, 'label': label}
+
+    def __len__(self):
+        return self.size
+
+    def name(self):
+        return 'LabeledDataset'

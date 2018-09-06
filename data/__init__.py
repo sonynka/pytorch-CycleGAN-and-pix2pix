@@ -4,9 +4,10 @@ from PIL import Image
 from data import datasets
 import os
 
-def get_data_loaders(opt):
+def get_data_loaders(opt, modes=None):
 
-    modes = ['train', 'val', 'test']
+    if not modes:
+        modes = ['train', 'val', 'test']
 
     d_args = {}
     dataset = None
@@ -18,6 +19,12 @@ def get_data_loaders(opt):
         d_args = {'root': opt.dataroot,
                   'labels_path': os.path.join(opt.dataroot, 'img_attr.csv'),
                   'attrA': opt.attrA, 'attrB': opt.attrB,
+                  'categories': opt.categories}
+    elif opt.dataset_mode == 'labeled':
+        dataset = datasets.LabeledDataset
+        d_args = {'root': opt.dataroot,
+                  'labels_path': os.path.join(opt.dataroot, 'img_attr.csv'),
+                  'attributes': opt.attributes,
                   'categories': opt.categories}
 
     data_transforms = \
