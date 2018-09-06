@@ -46,6 +46,8 @@ class Visualizer():
         self.opt = opt
         self.saved = False
 
+        util.mkdir(os.path.join(opt.log_dir, opt.name))
+
         self.logger = create_logger(
             os.path.join(
                 opt.log_dir, opt.name,

@@ -4,6 +4,10 @@ from PIL import Image
 from data import datasets
 import os
 
+from logging import getLogger
+
+logger = getLogger()
+
 def get_data_loaders(opt, modes=None):
 
     if not modes:
@@ -49,5 +53,9 @@ def get_data_loaders(opt, modes=None):
                          num_workers=4)
         for mode in modes
     }
+
+    logger.info('--- Loaded Datasets ---')
+    for mode in modes:
+        logger.info('{} size: {}'.format(mode, len(image_datasets[mode])))
 
     return data_loaders

@@ -9,15 +9,15 @@ if __name__ == '__main__':
     visualizer = Visualizer(opt)
     logger = visualizer.logger
 
-    data_loaders = get_data_loaders(opt)
+    data_loaders = get_data_loaders(opt, modes=['train', 'val'])
     dataset = data_loaders['train']
     dataset_size = len(dataset)
-    print('#training images = %d' % dataset_size)
+    fixed_real_imgs = next(iter(data_loaders['val']))
 
     model = create_model(opt)
     model.setup(opt)
 
-    fixed_real_imgs = next(iter(data_loaders['val']))
+
     total_steps = 0
 
     for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):

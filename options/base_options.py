@@ -20,6 +20,7 @@ class BaseOptions():
         parser.add_argument('--dataroot', help='folder containg all images')
         parser.add_argument('--attrA', help='which attribute to train on cycleGAN')
         parser.add_argument('--attrB', help='which attribute to train on cycleGAN')
+        parser.add_argument('--attributes', help='which attributes to train on starGAN')
         parser.add_argument('--categories', help='specify clothing categories to train on')
         parser.add_argument('--which_direction', type=str, default='AtoB', help='AtoB or BtoA')
 
