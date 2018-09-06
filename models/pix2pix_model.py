@@ -73,7 +73,7 @@ class Pix2PixModel(BaseModel):
     def backward_D(self):
         # Sometimes flip labels to confuse the discriminator
         flip_labels = np.random.rand()
-        flip_labels = True if flip_labels < 0.1 else False
+        flip_labels = True if flip_labels < 0.05 else False
         # Fake
         # stop backprop to the generator by detaching fake_B
         fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A, self.fake_B), 1))
