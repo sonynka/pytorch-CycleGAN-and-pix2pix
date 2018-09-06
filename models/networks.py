@@ -383,3 +383,6 @@ class PixelDiscriminator(nn.Module):
 
     def forward(self, input):
         return self.net(input)
+
+
+

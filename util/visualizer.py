@@ -6,7 +6,9 @@ from . import util
 from . import html
 from scipy.misc import imresize
 from util.tensorboard_logger import Logger
+from util.logger import create_logger
 import torch
+from datetime import datetime
 
 
 # save image to the disk
@@ -43,6 +45,15 @@ class Visualizer():
         self.name = opt.name
         self.opt = opt
         self.saved = False
+
+        self.logger = create_logger(
+            os.path.join(
+                opt.log_dir, opt.name,
+                'train{}.log'.format(datetime.now().strftime("%Y%m%d-%H%M%S"))))
+        self.logger.info('============ Initialized logger ============')
+        self.logger.info('\n'.join('%s: %s' % (k, str(v)) for k, v
+                                    in sorted(dict(vars(opt)).items())))
+
         if self.display_id > 0:
             import visdom
             self.ncols = opt.display_ncols
@@ -51,7 +62,7 @@ class Visualizer():
         if self.use_html:
             self.web_dir = os.path.join(opt.checkpoints_dir, opt.name, 'web')
             self.img_dir = os.path.join(self.web_dir, 'images')
-            print('create web directory %s...' % self.web_dir)
+            self.logger.info('create web directory %s...' % self.web_dir)
             util.mkdirs([self.web_dir, self.img_dir])
         self.log_name = os.path.join(opt.checkpoints_dir, opt.name, 'loss_log.txt')
         self.tb_logger = Logger(os.path.join(opt.log_dir, opt.name))
@@ -63,8 +74,8 @@ class Visualizer():
     def reset(self):
         self.saved = False
 
-    def throw_visdom_connection_error(self): 
-        print('\n\nCould not connect to Visdom server (https://github.com/facebookresearch/visdom) for displaying training progress.\nYou can suppress connection to Visdom using the option --display_id -1. To install visdom, run \n$ pip install visdom\n, and start the server by \n$ python -m visdom.server.\n\n')
+    def throw_visdom_connection_error(self):
+        self.logger.info('\n\nCould not connect to Visdom server (https://github.com/facebookresearch/visdom) for displaying training progress.\nYou can suppress connection to Visdom using the option --display_id -1. To install visdom, run \n$ pip install visdom\n, and start the server by \n$ python -m visdom.server.\n\n')
         exit(1)
 
     # |visuals|: dictionary of images to display or save
@@ -162,7 +173,7 @@ class Visualizer():
         for k, v in losses.items():
             message += '%s: %.3f ' % (k, v)
 
-        print(message)
+        self.logger.info(message)
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)
 
