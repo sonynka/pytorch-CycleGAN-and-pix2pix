@@ -27,33 +27,20 @@ if __name__ == '__main__':
 
         for i, data in enumerate(dataset):
             iter_start_time = time.time()
-            if total_steps % opt.log_freq == 0:
-                t_data = iter_start_time - iter_data_time
-            visualizer.reset()
             total_steps += opt.batch_size
             epoch_iter += opt.batch_size
             model.set_input(data)
             model.optimize_parameters()
 
-            if total_steps % opt.display_freq == 0:
-                save_result = total_steps % opt.update_html_freq == 0
-                model.set_input(fixed_real_imgs)
-                model.forward()
-                visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
-
             if total_steps % opt.log_freq == 0:
                 losses = model.get_current_losses()
                 t = (time.time() - iter_start_time) / opt.batch_size
-                visualizer.print_current_losses(epoch, epoch_iter, losses, t, t_data)
-                if opt.display_id > 0:
-                    visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, opt, losses)
-                visualizer.tensorboard_log_losses(losses, total_steps)
+                visualizer.log_current_losses(epoch, epoch_iter, losses, total_steps)
 
                 model.set_input(fixed_real_imgs)
                 model.forward()
-                visualizer.tensorboard_log_images(model.get_current_visuals(),
-                                                  model.visual_names,
-                                                  total_steps)
+                visualizer.log_current_visuals(model.get_current_visuals(),
+                                               epoch, total_steps)
 
             if total_steps % opt.save_latest_freq == 0:
                 logger.info('saving the latest model (epoch %d, total_steps %d)' %

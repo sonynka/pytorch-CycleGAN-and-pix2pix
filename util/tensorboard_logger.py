@@ -2,6 +2,7 @@
 import tensorflow as tf
 import numpy as np
 import scipy.misc
+from PIL import Image
 from torchvision.utils import make_grid
 
 try:
@@ -24,25 +25,20 @@ class Logger(object):
     def image_summary(self, tags, images, step):
         """Log a list of images."""
 
-
         img_summaries = []
-        for i, img in enumerate(images):
+        for i, (tag, img) in enumerate(zip(tags, images)):
             # Write the image to a string
             try:
                 s = StringIO()
             except:
                 s = BytesIO()
 
-            grid = make_grid(img, nrow=1)
-            img = grid.mul(255).clamp(0, 255).byte().permute(1, 2, 0).cpu().numpy()
-            scipy.misc.toimage(img).save(s, format="png")
-
-            # Create an Image object
+            Image.fromarray(img).save(s, format='png')
             img_sum = tf.Summary.Image(encoded_image_string=s.getvalue(),
                                        height=img.shape[0],
                                        width=img.shape[1])
             # Create a Summary value
-            img_summaries.append(tf.Summary.Value(tag='%s' % (tags[i]), image=img_sum))
+            img_summaries.append(tf.Summary.Value(tag=tag, image=img_sum))
 
         # Create and write Summary
         summary = tf.Summary(value=img_summaries)
