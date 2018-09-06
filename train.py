@@ -38,7 +38,10 @@ if __name__ == '__main__':
                 visualizer.log_current_losses(epoch, epoch_iter, losses, total_steps)
 
                 model.set_input(fixed_real_imgs)
-                model.forward()
+                if opt.model == 'star_gan':
+                    model.forward(use_fixed_labels=True)
+                else:
+                    model.forward()
                 visualizer.log_current_visuals(model.get_current_visuals(),
                                                epoch, total_steps)
 

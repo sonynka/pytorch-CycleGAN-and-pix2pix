@@ -45,7 +45,7 @@ class Visualizer():
         self.img_dir = os.path.join(self.web_dir, 'images')
         self.log_dir = os.path.join(opt.log_dir, opt.name)
 
-        util.mkdirs([self.web_dir, self.img_dir])
+        util.mkdirs([self.web_dir, self.img_dir, self.log_dir])
 
         log_name = 'train{}.log'.format(datetime.now().strftime("%Y%m%d-%H%M%S"))
         self.logger = create_logger(os.path.join(self.log_dir, log_name))

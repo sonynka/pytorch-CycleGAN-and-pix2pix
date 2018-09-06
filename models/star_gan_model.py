@@ -25,7 +25,7 @@ class StarGANModel(BaseModel):
         if is_train:
             parser.add_argument('--lambda_rec', type=float, default=10, help='weight for reconstruction loss')
             parser.add_argument('--lambda_cls', type=float, default=1, help='weight for classification loss')
-            parser.add_argument('--lmabda_gp', type=float, default=10, help='weight for gradient penalty loss')
+            parser.add_argument('--lambda_gp', type=float, default=10, help='weight for gradient penalty loss')
             parser.add_argument('--c_dim', type=int, default=3, help='number of classes')
 
         return parser
@@ -57,7 +57,7 @@ class StarGANModel(BaseModel):
         if self.isTrain:
             self.fake_img_pool = ImagePool(opt.pool_size)
             # define loss functions
-            self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan).to(self.device)
+            self.criterionGAN = networks.GANLoss().to(self.device)
             self.criterionL1 = torch.nn.L1Loss()
             self.criterionBCE = networks.ClassificationLoss()
 
@@ -70,6 +70,19 @@ class StarGANModel(BaseModel):
             self.optimizers.append(self.optimizer_G)
             self.optimizers.append(self.optimizer_D)
 
+        self.fixed_labels = self.make_fixed_labels()
+
+    def make_fixed_labels(self):
+        """Generate domain labels for dataset for debugging/testing.
+        """
+        fixed_labels = []
+        for dim in range(self.opt.c_dim):
+            t = [0] * self.opt.c_dim
+            t[dim] = 1
+            t = torch.FloatTensor(t).expand([self.opt.batch_size, self.opt.c_dim])
+            fixed_labels.append(t)
+        return fixed_labels
+
     def set_input(self, input):
         self.real_img = input['img'].to(self.device)
         self.real_label = input['label'].to(self.device)
@@ -78,9 +91,15 @@ class StarGANModel(BaseModel):
         rand_idx = torch.randperm(self.real_label.size(0))
         self.fake_label = self.real_label[rand_idx]
 
-    def forward(self):
+    def forward(self, use_fixed_labels=False):
         self.fake_img = self.netG(self.real_img, self.fake_label)
         self.rec_img = self.netG(self.fake_img, self.real_label)
+
+        if use_fixed_labels:
+            fake_fixed_img = []
+            for fixed_label in self.fixed_labels:
+                fake_fixed_img.append(self.netG(self.real_img, fixed_label))
+            self.fake_img = torch.cat(fake_fixed_img, dim=2)
 
     def backward_D(self, flip=False):
         # Sometimes flip labels to confuse the discriminator
@@ -106,8 +125,10 @@ class StarGANModel(BaseModel):
         # Wasserstein
         alpha = torch.rand(self.opt.batch_size, 1, 1, 1).to(self.device)\
                      .expand_as(self.real_img)
-        interpolated = alpha * self.real_img.detach() +\
-                       ((1 - alpha) * self.fake_img.detach()).to(self.device)
+        interpolated = torch.autograd.Variable(
+            alpha * self.real_img.detach() + ((1 - alpha) * self.fake_img.detach()),
+            requires_grad=True).to(self.device)
+
         pred_intp, pred_label = self.netD(interpolated)
 
         grad = torch.autograd.grad(outputs=pred_intp,

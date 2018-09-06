@@ -33,7 +33,7 @@ class BaseModel():
     def set_input(self, input):
         self.input = input
 
-    def forward(self):
+    def forward(self, *args):
         pass
 
     # load and print networks; create schedulers

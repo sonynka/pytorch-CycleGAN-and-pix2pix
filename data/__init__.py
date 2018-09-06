@@ -50,7 +50,8 @@ def get_data_loaders(opt, modes=None):
         mode: DataLoader(image_datasets[mode],
                          batch_size=8 if mode =='val' else opt.batch_size,
                          shuffle=False if mode == 'test' else True,
-                         num_workers=4)
+                         num_workers=4,
+                         drop_last=True)
         for mode in modes
     }
 

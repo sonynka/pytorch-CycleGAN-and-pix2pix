@@ -83,7 +83,7 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
     elif which_model_netG == 'unet_256':
         netG = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     elif which_model_netG == 'stargan':
-        netG = StarGANGenerator(input_nc, output_nc, 6, ngf, image_size)
+        netG = StarGANGenerator(input_nc, output_nc, ngf, 6, image_size)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % which_model_netG)
     return init_net(netG, init_type, gpu_ids)

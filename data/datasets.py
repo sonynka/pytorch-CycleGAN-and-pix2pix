@@ -136,6 +136,7 @@ class LabeledDataset():
 
         self.imgs, self.labels = self.process_labels(imlist, attributes)
         self.size = len(self.imgs)
+        self.c_dim = len(self.labels[0])
 
     def process_labels(self, imlist, attributes):
         """ Load the labels from CSV file, process, and return a dataframe """
