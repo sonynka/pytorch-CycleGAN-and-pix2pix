@@ -12,6 +12,8 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--update_html_freq', type=int, default=1000, help='frequency of saving training results to html')
         parser.add_argument('--save_epoch_freq', type=int, default=5, help='frequency of saving checkpoints at the end of epochs')
         parser.add_argument('--continue_train', action='store_true', help='continue training: load the latest model')
+
+        parser.add_argument('--train_D_repeat', type=int, default=1, help='the number of times to repeat D optimization before optimizing G')
         parser.add_argument('--epoch_count', type=int, default=1, help='the starting epoch count, we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>, ...')
         parser.add_argument('--phase', type=str, default='train', help='train, val, test, etc')
         parser.add_argument('--which_epoch', type=str, default='latest', help='which epoch to load? set to latest to use latest cached model')

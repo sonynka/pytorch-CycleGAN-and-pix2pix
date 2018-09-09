@@ -62,7 +62,7 @@ class BaseModel():
     def get_image_paths(self):
         return self.image_paths
 
-    def optimize_parameters(self):
+    def optimize_parameters(self, optimize_G=True):
         pass
 
     # update learning rate (called once every epoch)
@@ -86,7 +86,10 @@ class BaseModel():
         for name in self.loss_names:
             if isinstance(name, str):
                 # float(...) works for both scalar tensor and float number
-                errors_ret[name] = float(getattr(self, 'loss_' + name))
+                try:
+                    errors_ret[name] = float(getattr(self, 'loss_' + name))
+                except:
+                    pass
         return errors_ret
 
     # save models to the disk

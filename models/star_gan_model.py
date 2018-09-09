@@ -57,7 +57,7 @@ class StarGANModel(BaseModel):
         if self.isTrain:
             self.fake_img_pool = ImagePool(opt.pool_size)
             # define loss functions
-            self.criterionGAN = networks.GANLoss().to(self.device)
+            self.criterionGAN = networks.GANLoss(soft_labels=False).to(self.device)
             self.criterionL1 = torch.nn.L1Loss()
             self.criterionBCE = networks.ClassificationLoss()
 
@@ -122,6 +122,10 @@ class StarGANModel(BaseModel):
         self.loss_D_cls = self.criterionBCE(
             pred_label, self.real_label, self.opt.batch_size) * self.opt.lambda_cls
 
+        self.loss_D = self.loss_D_fake + self.loss_D_real + self.loss_D_cls
+        self.loss_D.backward()
+        self.optimizer_D.step()
+
         # Wasserstein
         alpha = torch.rand(self.opt.batch_size, 1, 1, 1).to(self.device)\
                      .expand_as(self.real_img)
@@ -141,9 +145,12 @@ class StarGANModel(BaseModel):
         grad_l2norm = torch.sqrt(torch.sum(grad ** 2, dim=1))
         self.loss_D_gp = torch.mean((grad_l2norm - 1) ** 2) * self.opt.lambda_gp
 
+        self.optimizer_D.zero_grad()
+        self.loss_D_gp.backward()
+        self.optimizer_D.step()
+
         # Combined loss
-        self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5 + self.loss_D_cls + self.loss_D_gp
-        self.loss_D.backward()
+        self.loss_D = self.loss_D_fake + self.loss_D_real + self.loss_D_cls + self.loss_D_gp
 
     def backward_G(self):
         # First, G(A) should fake the discriminator
@@ -160,16 +167,16 @@ class StarGANModel(BaseModel):
 
         self.loss_G.backward()
 
-    def optimize_parameters(self):
+    def optimize_parameters(self, optimize_G=True):
         self.forward()
         # update D
         self.set_requires_grad(self.netD, True)
         self.optimizer_D.zero_grad()
         self.backward_D()
-        self.optimizer_D.step()
 
         # update G
-        self.set_requires_grad(self.netD, False)
-        self.optimizer_G.zero_grad()
-        self.backward_G()
-        self.optimizer_G.step()
+        if optimize_G:
+            self.set_requires_grad(self.netD, False)
+            self.optimizer_G.zero_grad()
+            self.backward_G()
+            self.optimizer_G.step()

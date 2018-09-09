@@ -30,7 +30,7 @@ if __name__ == '__main__':
             total_steps += opt.batch_size
             epoch_iter += opt.batch_size
             model.set_input(data)
-            model.optimize_parameters()
+            model.optimize_parameters(optimize_G=(i+1) % opt.train_D_repeat == 0)
 
             if total_steps % opt.log_freq == 0:
                 losses = model.get_current_losses()
