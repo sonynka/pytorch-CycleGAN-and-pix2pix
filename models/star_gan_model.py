@@ -21,12 +21,14 @@ class StarGANModel(BaseModel):
         parser.set_defaults(which_model_netG='stargan')
         parser.set_defaults(which_model_netD='stargan')
         parser.set_defaults(n_layers_D=6)
+        parser.add_argument('--c_dim', type=int, default=5,
+                            help='number of classes')
 
         if is_train:
             parser.add_argument('--lambda_rec', type=float, default=10, help='weight for reconstruction loss')
             parser.add_argument('--lambda_cls', type=float, default=1, help='weight for classification loss')
             parser.add_argument('--lambda_gp', type=float, default=10, help='weight for gradient penalty loss')
-            parser.add_argument('--c_dim', type=int, default=3, help='number of classes')
+            parser.add_argument('--lambda_l1', type=float, default=10, help='weight of l1 loss')
 
         return parser
 
@@ -35,7 +37,7 @@ class StarGANModel(BaseModel):
         self.isTrain = opt.isTrain
         # specify the training losses you want to print out. The program will call base_model.get_current_losses
         self.loss_names = ['D', 'D_real', 'D_fake', 'D_cls', 'D_gp',
-                           'G', 'G_GAN', 'G_cls', 'G_rec']
+                           'G', 'G_GAN', 'G_cls', 'G_rec', 'G_L1']
         # specify the images you want to save/display. The program will call base_model.get_current_visuals
         self.visual_names = ['real_img', 'fake_img', 'rec_img']
         # specify the models you want to save to the disk. The program will call base_model.save_networks and base_model.load_networks
@@ -57,7 +59,7 @@ class StarGANModel(BaseModel):
         if self.isTrain:
             self.fake_img_pool = ImagePool(opt.pool_size)
             # define loss functions
-            self.criterionGAN = networks.GANLoss(soft_labels=False).to(self.device)
+            self.criterionGAN = networks.GANLoss(soft_labels=True).to(self.device)
             self.criterionL1 = torch.nn.L1Loss()
             self.criterionBCE = networks.ClassificationLoss()
 
@@ -86,7 +88,7 @@ class StarGANModel(BaseModel):
     def set_input(self, input):
         self.real_img = input['img'].to(self.device)
         self.real_label = input['label'].to(self.device)
-        self.img_path = input['img_path']
+        self.image_paths = input['img_path']
 
         rand_idx = torch.randperm(self.real_label.size(0))
         self.fake_label = self.real_label[rand_idx]
@@ -163,7 +165,9 @@ class StarGANModel(BaseModel):
         self.loss_G_rec = self.criterionL1(
             self.rec_img, self.real_img) * self.opt.lambda_rec
 
-        self.loss_G = self.loss_G_GAN + self.loss_G_rec + self.loss_G_cls
+        self.loss_G_L1 = self.criterionL1(self.fake_img, self.real_img) * self.opt.lambda_l1
+
+        self.loss_G = self.loss_G_GAN + self.loss_G_rec + self.loss_G_cls + self.loss_G_L1
 
         self.loss_G.backward()
 
