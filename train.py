@@ -30,7 +30,7 @@ if __name__ == '__main__':
             total_steps += opt.batch_size
             epoch_iter += opt.batch_size
             model.set_input(data)
-            model.optimize_parameters(optimize_G=(i+1) % opt.train_D_repeat == 0)
+            model.optimize_parameters()
 
             if total_steps % opt.log_freq == 0:
                 losses = model.get_current_losses()
@@ -38,10 +38,7 @@ if __name__ == '__main__':
                 visualizer.log_current_losses(epoch, epoch_iter, losses, total_steps)
 
                 model.set_input(fixed_real_imgs)
-                if opt.model == 'star_gan':
-                    model.forward(use_fixed_labels=True)
-                else:
-                    model.forward()
+                model.forward()
                 visualizer.log_current_visuals(model.get_current_visuals(),
                                                epoch, total_steps)
 

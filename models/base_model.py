@@ -54,15 +54,15 @@ class BaseModel():
 
     # used in test time, wrapping `forward` in no_grad() so we don't save
     # intermediate steps for backprop
-    def test(self, use_fixed_labels=False):
+    def test(self):
         with torch.no_grad():
-            self.forward(use_fixed_labels)
+            self.forward()
 
     # get image paths
     def get_image_paths(self):
         return self.image_paths
 
-    def optimize_parameters(self, optimize_G=True):
+    def optimize_parameters(self):
         pass
 
     # update learning rate (called once every epoch)

@@ -26,11 +26,11 @@ if __name__ == '__main__':
         if i >= opt.how_many:
             break
         model.set_input(data)
-        model.test(use_fixed_labels=opt.model == 'star_gan')
+        model.test()
         visuals = model.get_current_visuals()
         img_path = model.get_image_paths()[0]
         if i % 5 == 0:
             print('processing (%04d)-th image... %s' % (i, img_path))
-        save_images(web_dir, visuals, img_path)
+        save_images(web_dir, visuals, str(i))
 
     webpage.save()
